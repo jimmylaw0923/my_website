@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册和登录 - HASEVEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: radial-gradient(circle, #0e0e0e, #1a1a1a, #0e0e0e);
+            color: #00ffcc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            animation: backgroundShift 5s infinite alternate;
+        }
+
+        @keyframes backgroundShift {
+            0% { background: radial-gradient(circle, #0e0e0e, #1a1a1a); }
+            100% { background: radial-gradient(circle, #0e0e0e, #333); }
+        }
+
+        .brand {
+            font-size: 36px;
+            color: rgba(0, 255, 255, 0.8);
+            position: absolute;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+
+        .left-brand {
+            top: 20px;
+            left: 10px;
+            transform: rotate(90deg);
+            animation: glow 3s infinite alternate;
+        }
+
+        .right-brand {
+            bottom: 20px;
+            right: 10px;
+            transform: rotate(-90deg);
+            animation: glow 3s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(0, 255, 255, 1), 0 0 20px rgba(0, 255, 255, 0.7); }
+            to { text-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 40px rgba(0, 255, 255, 0.7); }
+        }
+
+        h1 {
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.8), 0 0 25px rgba(0, 255, 204, 0.4);
+            color: #00cc99;
+        }
+
+        form {
+            background: rgba(10, 10, 10, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            max-width: 400px;
+            transition: all 0.3s;
+        }
+
+        form:hover {
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.8);
+        }
+
+        input {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 2px solid #00ffcc;
+            border-radius: 8px;
+            background: rgba(15, 15, 15, 0.8);
+            color: #00ffcc;
+            transition: border 0.3s;
+        }
+
+        input::placeholder {
+            color: rgba(0, 255, 204, 0.5);
+        }
+
+        input:focus {
+            border-color: #00cc99;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #00ffcc;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #00cc99;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #register-message, #login-message {
+            margin-top: 10px;
+            color: #ff3333;
+            text-align: center;
+            animation: messageAppear 0.5s ease-in-out;
+        }
+
+        @keyframes messageAppear {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="brand left-brand">HASEVEN</div>
+    <div class="brand right-brand">HASEVEN</div>
+    
+    <h1>用户注册</h1>
+    <form id="register-form">
+        <input type="text" placeholder="用户名" id="username" required>
+        <input type="password" placeholder="密码" id="password" required>
+        <button type="submit">注册</button>
+    </form>
+    <div id="register-message"></div>
+
+    <h1>用户登录</h1>
+    <form id="login-form">
+        <input type="text" placeholder="用户名" id="login-username" required>
+        <input type="password" placeholder="密码" id="login-password" required>
+        <button type="submit">登录</button>
+    </form>
+    <div id="login-message"></div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (username.length < 3 || password.length < 5) {
+                document.getElementById('register-message').innerText = '用户名需至少3个字符，密码需至少5个字符！';
+                return;
+            }
+
+            if (localStorage.getItem(`user_${username}`)) {
+                document.getElementById('register-message').innerText = '用户名已存在！';
+                return;
+            }
+
+            const role = username === 'admin' ? 'admin' : 'user';
+            localStorage.setItem(`user_${username}`, JSON.stringify({ password, role, totalAmount: 0 }));
+            document.getElementById('register-message').innerText = '注册成功！';
+            document.getElementById('register-form').reset();
+
+            if (window.opener && !window.opener.closed) {
+                window.opener.location.reload();
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            document.getElementById('login-message').innerText = '';
+
+            const userData = localStorage.getItem(`user_${username}`);
+            if (!userData) {
+                document.getElementById('login-message').innerText = '用户名不存在！';
+                return;
+            }
+
+            const { password: storedPassword, role } = JSON.parse(userData);
+            if (storedPassword === password) {
+                document.getElementById('login-message').innerText = '登录成功！';
+                localStorage.setItem('currentUsername', username);
+                window.location.href = role === 'admin' ? 'admin.html' : 'index.html';
+            } else {
+                document.getElementById('login-message').innerText = '密码错误！';
+            }
+        });
+    </script>
+</body>
+</html>
