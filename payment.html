@@ -66,7 +66,6 @@
     <h1 class="welcome-text">付款页面</h1>
     <div class="container">
         <h2 id="amount-display">充值金额: 0 元</h2>
-        <button class="action-button" id="back-button">返回充值</button>
         <button class="action-button home-button" id="home-button">返回主页</button>
     </div>
 
@@ -93,10 +92,6 @@
             localStorage.setItem(userKey, JSON.stringify(userData)); // 更新localStorage
             alert(`成功充值 ${amount} 元！`);
             updateBalanceDisplay(); // 更新余额显示
-        });
-
-        document.getElementById('back-button').addEventListener('click', () => {
-            window.location.href = 'recharge.html'; // 返回充值页面
         });
 
         document.getElementById('home-button').addEventListener('click', () => {
