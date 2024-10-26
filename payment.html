@@ -52,11 +52,6 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
         }
 
-        .action-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
         .home-button {
             margin-top: 30px; /* 与其他内容的间距 */
             background: linear-gradient(45deg, #007bff, #00aaff); /* 不同的渐变色 */
@@ -78,14 +73,27 @@
 
     <script>
         const currentUsername = localStorage.getItem('currentUsername');
-        const userData = JSON.parse(localStorage.getItem(currentUsername)) || { totalAmount: 0 };
-        const totalAmount = userData.totalAmount;
-        document.getElementById('amount-display').innerText = `充值金额: ${totalAmount} 元`;
+        const userKey = `user_${currentUsername}`;
+        let userData = JSON.parse(localStorage.getItem(userKey)) || { totalAmount: 0 };
+        
+        // 更新显示余额
+        function updateBalanceDisplay() {
+            document.getElementById('amount-display').innerText = `充值金额: ${userData.totalAmount} 元`;
+        }
+
+        // 初始化显示
+        updateBalanceDisplay();
 
         document.getElementById('confirm-payment').addEventListener('click', () => {
-            alert(`成功付款 ${totalAmount} 元！`);
-            localStorage.removeItem(currentUsername); // 根据需求调整
-            window.location.href = 'index.html'; // 跳转到主页
+            const amount = parseFloat(document.getElementById('amount-input').value);
+            if (!amount || amount <= 0) {
+                alert('请输入有效的充值金额！');
+                return;
+            }
+            userData.totalAmount += amount; // 增加余额
+            localStorage.setItem(userKey, JSON.stringify(userData)); // 更新localStorage
+            alert(`成功充值 ${amount} 元！`);
+            updateBalanceDisplay(); // 更新余额显示
         });
 
         document.getElementById('back-button').addEventListener('click', () => {
