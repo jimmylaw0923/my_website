@@ -5,134 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员页面</title>
     <style>
-        /* 基本样式 */
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #141e30, #243b55);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        h1, h2 {
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+            background: radial-gradient(circle, #0e0e0e, #1a1a1a);
+            color: #00ffcc;
+            padding: 20px;
         }
 
         h1 {
-            font-size: 2.5em;
-            color: #e94560;
+            text-align: center;
+            color: #00cc99;
         }
 
-        h2 {
-            font-size: 1.5em;
-            color: #08d9d6;
-        }
-
-        /* 表格样式 */
         table {
+            width: 100%;
             border-collapse: collapse;
-            width: 80%;
             margin-top: 20px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
         }
 
         th, td {
-            padding: 12px;
+            border: 1px solid #00ffcc;
+            padding: 10px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        th {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        tr:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* 按钮样式 */
-        .action-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #e94560;
+        button {
+            background: #00ffcc;
+            color: #000;
             border: none;
-            border-radius: 5px;
-            color: #ffffff;
+            padding: 5px 10px;
             cursor: pointer;
             transition: background 0.3s;
         }
 
-        .action-button:hover {
-            background-color: #08d9d6;
+        button:hover {
+            background: #00cc99;
+        }
+
+        input {
+            width: 80px;
+            padding: 5px;
+            border: 2px solid #00ffcc;
+            border-radius: 5px;
+            margin-right: 5px;
+            background: rgba(15, 15, 15, 0.8);
+            color: #00ffcc;
         }
     </style>
 </head>
 <body>
     <h1>管理员页面</h1>
-    <h2>用户列表</h2>
     <table id="user-table">
         <thead>
             <tr>
                 <th>用户名</th>
-                <th>操作</th>
+                <th>余额</th>
+                <th>充值</th>
+                <th>付款</th>
+                <th>删除用户</th>
             </tr>
         </thead>
         <tbody>
-            <!-- 用户列表会填充在这里 -->
+            <!-- 用户数据将通过JavaScript填充 -->
         </tbody>
     </table>
-    <button class="action-button" id="logout-button">登出</button>
 
     <script>
-        const userTable = document.getElementById('user-table').getElementsByTagName('tbody')[0];
-
-        // 从 localStorage 中读取用户数据并填充表格
-        function loadUserData() {
-            userTable.innerHTML = ''; // 清空表格内容
+        window.onload = () => {
+            const userTable = document.getElementById('user-table').getElementsByTagName('tbody')[0];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-
-                // 确保只显示以 "user_" 前缀开头的键值
                 if (key.startsWith('user_')) {
-                    const username = key.slice(5); // 去掉 "user_" 前缀
                     const userData = JSON.parse(localStorage.getItem(key));
-
-                    // 确保只显示 'user' 角色的账户
-                    if (userData && userData.role === 'user') {
-                        const row = userTable.insertRow();
-                        row.insertCell(0).innerText = username;
-                        const deleteCell = row.insertCell(1);
-                        const deleteButton = document.createElement('button');
-                        deleteButton.classList.add('delete-button');
-                        deleteButton.innerText = '删除';
-                        deleteButton.onclick = () => deleteUser(key); // 使用原始 key 删除用户
-                        deleteCell.appendChild(deleteButton);
-                    }
+                    const row = userTable.insertRow();
+                    row.insertCell(0).innerText = key.substring(5); // 用户名
+                    row.insertCell(1).innerText = userData.totalAmount; // 余额
+                    
+                    // 充值功能
+                    const rechargeCell = row.insertCell(2);
+                    const rechargeButton = document.createElement('button');
+                    rechargeButton.innerText = '充值';
+                    rechargeButton.onclick = () => {
+                        const amount = prompt('输入充值金额：');
+                        if (amount && !isNaN(amount)) {
+                            userData.totalAmount += parseFloat(amount);
+                            localStorage.setItem(key, JSON.stringify(userData)); // 更新余额
+                            row.cells[1].innerText = userData.totalAmount; // 更新表格
+                        }
+                    };
+                    rechargeCell.appendChild(rechargeButton);
+                    
+                    // 付款功能
+                    const paymentCell = row.insertCell(3);
+                    const paymentInput = document.createElement('input');
+                    paymentInput.type = 'number';
+                    paymentInput.placeholder = '付款金额';
+                    paymentInput.min = '0'; // 限制为非负数
+                    const paymentButton = document.createElement('button');
+                    paymentButton.innerText = '付款';
+                    paymentButton.onclick = () => {
+                        const amount = parseFloat(paymentInput.value);
+                        if (!isNaN(amount) && amount > 0) {
+                            if (userData.totalAmount >= amount) {
+                                userData.totalAmount -= amount; // 减少余额
+                                localStorage.setItem(key, JSON.stringify(userData)); // 更新余额
+                                row.cells[1].innerText = userData.totalAmount; // 更新表格
+                                paymentInput.value = ''; // 清空输入框
+                                alert(`已成功付款 ${amount} 给 ${key.substring(5)}！`);
+                            } else {
+                                alert('余额不足！');
+                            }
+                        } else {
+                            alert('请输入有效的付款金额！');
+                        }
+                    };
+                    paymentCell.appendChild(paymentInput);
+                    paymentCell.appendChild(paymentButton);
+                    
+                    // 删除用户功能
+                    const deleteCell = row.insertCell(4);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.innerText = '删除用户';
+                    deleteButton.onclick = () => {
+                        if (confirm(`确定要删除用户 ${key.substring(5)} 吗？`)) {
+                            localStorage.removeItem(key); // 从 localStorage 中删除用户
+                            userTable.deleteRow(row.rowIndex - 1); // 删除表格中的行
+                            alert(`用户 ${key.substring(5)} 已被删除！`);
+                        }
+                    };
+                    deleteCell.appendChild(deleteButton);
                 }
             }
-        }
-
-        // 删除用户函数
-        function deleteUser(key) {
-            localStorage.removeItem(key);
-            alert(`用户 ${key.slice(5)} 已被删除！`);
-            loadUserData(); // 重新加载数据
-        }
-
-        // 登出按钮
-        document.getElementById('logout-button').addEventListener('click', () => {
-            localStorage.removeItem('currentUsername'); // 清除当前用户
-            window.location.href = 'login.html'; // 返回登录页面
-        });
-
-        // 加载用户数据
-        loadUserData();
+        };
     </script>
 </body>
 </html>
