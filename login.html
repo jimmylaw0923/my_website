@@ -155,21 +155,25 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
 
+            // 用户名和密码长度验证
             if (username.length < 3 || password.length < 5) {
                 document.getElementById('register-message').innerText = '用户名需至少3个字符，密码需至少5个字符！';
                 return;
             }
 
+            // 检查用户名是否已存在
             if (localStorage.getItem(`user_${username}`)) {
                 document.getElementById('register-message').innerText = '用户名已存在！';
                 return;
             }
 
+            // 设置角色（管理员或用户）
             const role = username === 'admin' ? 'admin' : 'user';
             localStorage.setItem(`user_${username}`, JSON.stringify({ password, role, totalAmount: 0 }));
             document.getElementById('register-message').innerText = '注册成功！';
             document.getElementById('register-form').reset();
 
+            // 刷新父窗口
             if (window.opener && !window.opener.closed) {
                 window.opener.location.reload();
             }
@@ -181,6 +185,7 @@
             const password = document.getElementById('login-password').value.trim();
             document.getElementById('login-message').innerText = '';
 
+            // 获取用户数据
             const userData = localStorage.getItem(`user_${username}`);
             if (!userData) {
                 document.getElementById('login-message').innerText = '用户名不存在！';
@@ -188,10 +193,11 @@
             }
 
             const { password: storedPassword, role } = JSON.parse(userData);
+            // 验证密码
             if (storedPassword === password) {
                 document.getElementById('login-message').innerText = '登录成功！';
                 localStorage.setItem('currentUsername', username);
-                window.location.href = role === 'admin' ? 'admin.html' : 'index.html';
+                window.location.href = role === 'admin' ? 'admin.html' : 'index.html'; // 跳转到相应页面
             } else {
                 document.getElementById('login-message').innerText = '密码错误！';
             }
